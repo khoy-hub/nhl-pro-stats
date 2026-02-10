@@ -12,6 +12,15 @@ export default async function Home() {
                     National Hockey League
                 </h1>
 
+                <div className="flex justify-center gap-4 mb-12">
+                    <Link href="/standings" className="px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold uppercase tracking-widest text-sm transition-colors border border-slate-700">
+                        🏆 Standings
+                    </Link>
+                    <Link href="/schedule" className="px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold uppercase tracking-widest text-sm transition-colors border border-slate-700">
+                        📅 Schedule
+                    </Link>
+                </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                     {teams.map((team) => (
                         <Link
