@@ -2,7 +2,48 @@ const BASE_URL = "https://api-web.nhle.com/v1";
 
 // === ТИПЫ ДАННЫХ ===
 
-// Для статистики (очки, голы)
+export interface PlayerProfile {
+    playerId: number;
+    firstName: { default: string };
+    lastName: { default: string };
+    sweaterNumber: number;
+    position: string;
+    headshot: string;
+    heroImage?: string; // Большая красивая фотка
+    heightInInches: number;
+    weightInPounds: number;
+    birthDate: string;
+    birthCity: { default: string };
+    teamId?: number;
+
+    // Новые данные для личной страницы
+    featuredStats?: {
+        season: number;
+        regularSeason: {
+            subSeason: {
+                gamesPlayed: number;
+                goals: number;
+                assists: number;
+                points: number;
+                plusMinus: number;
+                pim: number; // штрафные минуты
+                gameWinningGoals: number;
+            };
+        };
+    };
+    last5Games?: {
+        gameDate: string;
+        opponentAbbrev: string;
+        goals: number;
+        assists: number;
+        points: number;
+        plusMinus: number;
+        homeRoadFlag: "H" | "R";
+        gameOutcome: "W" | "L" | "OTL";
+    }[];
+}
+
+// Статистика полевого игрока (ВОТ ОНА БЫЛА ПОТЕРЯНА)
 export interface SkaterStats {
     playerId: number;
     headshot: string;
@@ -103,7 +144,7 @@ export async function getTeamRoster(teamAbbrev: string): Promise<TeamRoster> {
 }
 
 // 4. Получаем данные одного игрока (на будущее)
-export async function getPlayerById(id: number) {
+export async function getPlayerById(id: number): Promise<PlayerProfile> {
     const res = await fetch(`${BASE_URL}/player/${id}/landing`, {
         next: { revalidate: 3600 },
     });
