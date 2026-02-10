@@ -55,3 +55,40 @@ export async function getTeamRoster(teamAbbrev: string): Promise<TeamRoster> {
     if (!res.ok) throw new Error(`Failed to fetch roster for ${teamAbbrev}`);
     return res.json();
 }
+
+
+export interface TeamStandings {
+    teamName: { default: string };
+    teamAbbrev: { default: string };
+    teamLogo: string;
+    wins: number;
+    losses: number;
+    otLosses: number;
+    points: number;
+}
+
+// ... (старые функции getPlayerById и getTeamRoster оставляем)
+
+// НОВАЯ ФУНКЦИЯ: Получаем таблицу (и список команд заодно)
+export async function getAllTeams(): Promise<TeamStandings[]> {
+    const res = await fetch(`${BASE_URL}/standings/now`, {
+        next: { revalidate: 3600 },
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch standings");
+
+    const data = await res.json();
+
+    // API возвращает данные странно, нам нужно вытащить только список команд
+    // Обычно они лежат в standings -> и там массив.
+    // Но структура НХЛ сложная, давай упростим её:
+    return data.standings.map((team: any) => ({
+        teamName: team.teamName,
+        teamAbbrev: team.teamAbbrev,
+        teamLogo: team.teamLogo,
+        wins: team.wins,
+        losses: team.losses,
+        otLosses: team.otLosses,
+        points: team.points,
+    }));
+}

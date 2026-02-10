@@ -1,59 +1,39 @@
-import { getTeamRoster } from "@/lib/nhl";
+import { getAllTeams } from "@/lib/nhl";
 import Image from "next/image";
+import Link from "next/link";
 
 export default async function Home() {
-    // Запрашиваем состав Вашингтона (WSH)
-    const roster = await getTeamRoster("WSH");
-
-    // Объединяем всех в один массив для простоты отображения,
-    // но можно и разделять по секциям
-    const allPlayers = [
-        ...roster.forwards,
-        ...roster.defensemen,
-        ...roster.goalies,
-    ];
+    const teams = await getAllTeams();
 
     return (
-        <main className="min-h-screen bg-slate-950 text-white p-8">
-            <div className="max-w-7xl mx-auto">
-                <header className="mb-10 flex items-center justify-between border-b border-slate-800 pb-6">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
-                        Washington Capitals
-                    </h1>
-                    <span className="bg-slate-800 px-4 py-2 rounded-full text-sm text-slate-400">
-            Season 2025-2026
-          </span>
-                </header>
+        <main className="min-h-screen bg-slate-950 text-white">
+            <div className="max-w-7xl mx-auto p-8">
+                <h1 className="text-4xl font-black mb-8 text-center uppercase tracking-widest text-slate-700">
+                    National Hockey League
+                </h1>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {allPlayers.map((player) => (
-                        <div
-                            key={player.id}
-                            className="flex items-center gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-slate-600 transition-colors"
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                    {teams.map((team) => (
+                        <Link
+                            href={`/team/${team.teamAbbrev.default}`}
+                            key={team.teamAbbrev.default}
+                            className="group relative flex flex-col items-center justify-center p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-blue-500 hover:bg-slate-800 transition-all duration-300"
                         >
-                            <div className="relative w-16 h-16 flex-shrink-0">
+                            <div className="relative w-24 h-24 mb-4 transform group-hover:scale-110 transition-transform">
                                 <Image
-                                    src={player.headshot}
-                                    alt={player.lastName.default}
+                                    src={team.teamLogo}
+                                    alt={team.teamName.default}
                                     fill
-                                    className="object-contain rounded-full bg-slate-800"
+                                    className="object-contain"
                                 />
                             </div>
-                            <div>
-                                <h3 className="font-bold text-lg">
-                                    {player.firstName.default} {player.lastName.default}
-                                </h3>
-                                <div className="flex items-center gap-3 text-sm text-slate-400">
-                  <span className="text-white font-mono bg-red-900/30 px-2 py-0.5 rounded text-xs border border-red-900/50">
-                    #{player.sweaterNumber}
-                  </span>
-                                    <span>{player.positionCode}</span>
-                                    <span>
-                    {player.heightInInches}" / {player.weightInPounds} lbs
-                  </span>
-                                </div>
+                            <div className="font-bold text-center text-sm group-hover:text-blue-400 transition-colors">
+                                {team.teamName.default}
                             </div>
-                        </div>
+                            <div className="mt-2 text-xs text-slate-500 font-mono">
+                                {team.points} pts
+                            </div>
+                        </Link>
                     ))}
                 </div>
             </div>
