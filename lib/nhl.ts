@@ -2,7 +2,7 @@ const BASE_URL = "https://api-web.nhle.com/v1";
 
 // === ТИПЫ ДАННЫХ ===
 
-// Профиль игрока
+// 1. Профиль игрока (Личная страница)
 export interface PlayerProfile {
     playerId: number;
     firstName: { default: string };
@@ -15,34 +15,54 @@ export interface PlayerProfile {
     weightInPounds: number;
     birthDate: string;
     birthCity: { default: string };
+    birthCountry: string; // <--- НОВОЕ ПОЛЕ (для флага)
     teamId?: number;
+
+    // Статистика сезона (объединяем поля полевого и вратаря через ?)
     featuredStats?: {
         season: number;
         regularSeason: {
             subSeason: {
                 gamesPlayed: number;
+                // Полевые игроки
                 goals: number;
                 assists: number;
                 points: number;
                 plusMinus: number;
                 pim: number;
                 gameWinningGoals: number;
+                // Вратари (опционально)
+                wins?: number;
+                losses?: number;
+                otLosses?: number;
+                savePctg?: number;
+                goalsAgainstAvg?: number;
+                shutouts?: number;
             };
         };
     };
+
+    // Последние 5 игр
     last5Games?: {
         gameDate: string;
         opponentAbbrev: string;
+        homeRoadFlag: "H" | "R";
+        gameOutcome: "W" | "L" | "OTL";
+
+        // Полевые
         goals: number;
         assists: number;
         points: number;
         plusMinus: number;
-        homeRoadFlag: "H" | "R";
-        gameOutcome: "W" | "L" | "OTL";
+
+        // Вратари (опционально)
+        shotsAgainst?: number;
+        goalsAgainst?: number;
+        savePctg?: number;
     }[];
 }
 
-// Статистика полевого
+// 2. Статистика полевого (для списка команды)
 export interface SkaterStats {
     playerId: number;
     headshot: string;
@@ -57,7 +77,7 @@ export interface SkaterStats {
     plusMinus: number;
 }
 
-// Статистика вратаря
+// 3. Статистика вратаря (для списка команды)
 export interface GoalieStats {
     playerId: number;
     headshot: string;
@@ -77,6 +97,7 @@ export interface ClubStats {
     goalies: GoalieStats[];
 }
 
+// 4. Состав (Roster)
 export interface RosterPlayer {
     id: number;
     headshot: string;
@@ -92,7 +113,7 @@ export interface TeamRoster {
     goalies: RosterPlayer[];
 }
 
-// Турнирная таблица (расширенная)
+// 5. Турнирная таблица (Standings)
 export interface TeamStandings {
     teamName: { default: string };
     teamAbbrev: { default: string };
@@ -107,14 +128,14 @@ export interface TeamStandings {
     goalDifferential: number;
     goalFor: number;
     goalAgainst: number;
-    streakCode: string; // "W2", "L1" и т.д.
+    streakCode: string;
 }
 
-// Расписание игр
+// 6. Расписание (Schedule)
 export interface GameSchedule {
     id: number;
     startTimeUTC: string;
-    gameState: "FUT" | "PRE" | "LIVE" | "CRIT" | "FINAL" | "OFF"; // OFF = Final
+    gameState: "FUT" | "PRE" | "LIVE" | "CRIT" | "FINAL" | "OFF";
     awayTeam: {
         abbrev: string;
         score?: number;
@@ -139,11 +160,8 @@ export interface ScheduleResponse {
 
 // === ФУНКЦИИ ===
 
-// 1. Получаем таблицу (Standings)
 export async function getStandings(): Promise<TeamStandings[]> {
-    const res = await fetch(`${BASE_URL}/standings/now`, {
-        next: { revalidate: 3600 },
-    });
+    const res = await fetch(`${BASE_URL}/standings/now`, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error("Failed to fetch standings");
     const data = await res.json();
 
@@ -165,16 +183,12 @@ export async function getStandings(): Promise<TeamStandings[]> {
     }));
 }
 
-// 2. Получаем расписание (Schedule) на конкретную дату (или "now")
 export async function getSchedule(date: string): Promise<ScheduleResponse> {
-    const res = await fetch(`${BASE_URL}/schedule/${date}`, {
-        next: { revalidate: 600 }, // кэшируем на 10 минут, так как игры идут лайв
-    });
+    const res = await fetch(`${BASE_URL}/schedule/${date}`, { next: { revalidate: 600 } });
     if (!res.ok) throw new Error(`Failed to fetch schedule for ${date}`);
     return res.json();
 }
 
-// Обертки для совместимости
 export async function getAllTeams() { return getStandings(); }
 
 export async function getClubStats(teamAbbrev: string): Promise<ClubStats> {

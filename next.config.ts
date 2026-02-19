@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
                 hostname: "assets.nhle.com",
                 pathname: "/**",
             },
+            {
+                protocol: "https",
+                hostname: "flagcdn.com",
+                pathname: "/**",
+            },
         ],
     },
 };
